@@ -46,6 +46,15 @@ let rec simulate automaton state symbols =
     List.iter(fun m -> print_endline (m ^ " !!")) (Automaton.find_moves automaton.finals next);
     simulate automaton next tail
 
+let get_grammar_path () =
+  match Sys.argv with
+  | [| _; path |] -> path
+  | _ -> prerr_endline "Usage: ./ft_ality path_to_grammar_file"; exit 1
+
+let load_grammar path =
+  match Grammar.read_lines path with
+  | lines -> lines
+  | exception Sys_error msg -> prerr_endline msg; exit 1
 
 let () =
 Keymap.print_keymap Keymap.keymaps;
@@ -58,4 +67,5 @@ print_endline "----------------------";
 simulate trained 0 inputs_symbols;
 print_endline "----------------------";
 print_endline "OPEN TEST ------";
-List.iter print_endline (Grammar.read_lines "grammars/test.txt")
+(* test_path (get_grammar_path ()) *)
+List.iter print_endline (load_grammar (get_grammar_path ()))
