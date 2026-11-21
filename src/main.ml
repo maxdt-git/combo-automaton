@@ -32,10 +32,10 @@ let print_inputs keymap key =
   | Some action -> print_endline (key ^ " : " ^ action)
   | None -> print_endline (key ^ " => ???")
 
-let print_recognition automaton words =
-  match Automaton.recognize automaton words with
-  | Some move -> print_endline ("Move found : " ^ move)
-  | None -> print_endline "Wrong combination, no move found"
+let print_recognition automaton word =
+  match Automaton.recognize automaton word with
+  | [] -> print_endline "Wrong combination, no move found"
+  | moves -> List.iter (fun m -> print_endline ("Move found : " ^ m)) moves
 
 let rec simulate automaton state symbols =
   match symbols with
@@ -55,4 +55,7 @@ List.iter (print_recognition uppercut) words;
 print_endline "----------------------";
 List.iter (print_recognition trained) words;
 print_endline "----------------------";
-simulate trained 0 inputs_symbols
+simulate trained 0 inputs_symbols;
+print_endline "----------------------";
+print_endline "OPEN TEST ------";
+List.iter print_endline (Grammar.read_lines "grammars/test.txt")
