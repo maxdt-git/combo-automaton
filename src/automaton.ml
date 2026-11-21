@@ -1,29 +1,3 @@
-type binding = { key: string; action : string }
-
-let keymaps = [
-  { key = "q"; action = "Punch" };
-  { key = "w"; action = "Kick" };
-  { key = "e"; action = "Block" };
-  { key = "r"; action = "Down" };
-  { key = "t"; action = "Up" };
-  { key = "y"; action = "Duck" };
-]
-
-let print_binding b =
-  print_endline (b.key ^ " -> " ^ b.action)
-
-let print_keymap km =
-  print_endline "Key mappings:";
-  List.iter print_binding km;
-  print_endline "----------------------"
-
-let rec find_actions lst key =
-  match lst with
-  | [] -> None
-  | head :: _ when head.key = key -> Some head.action
-  | _ :: tail -> find_actions tail key
-
-
 type transition = {
   before : int;
   symbol : string;
@@ -39,3 +13,67 @@ type automaton = {
   transitions : transition list;
   finals : final list
 }
+
+type combo = {
+  sequence : string list;
+  name : string
+}
+
+let rec next_state transitions state symbol =
+  match transitions with
+  | [] -> None
+  | head :: _ when head.symbol = symbol && head.before = state -> Some head.after
+  | _ :: tail -> next_state tail state symbol
+
+
+let rec find_move finals state =
+  match finals with
+  | [] -> None
+  | head :: _ when head.state = state -> Some head.move
+  | _ :: tail -> find_move tail state
+
+let rec run transitions state symbols =
+  match symbols with
+  | [] -> Some state
+  | head :: tail ->
+    (match next_state transitions state head with
+    | None -> None
+    | Some next -> run transitions next tail)
+
+let rec recognize automaton symbols =
+  match run automaton.transitions 0 symbols with
+  | None -> None
+  | Some last -> find_move automaton.finals last
+
+let empty = {
+  transitions = [];
+  finals = [];
+}
+
+let new_state automaton =
+  (List.fold_left (fun acc t -> max acc t.after) 0 automaton.transitions) + 1
+
+let rec add_combo automaton state symbols move =
+  match symbols with
+  | [] -> {automaton with finals = { state = state; move = move } :: automaton.finals }
+  | head :: tail ->
+    match next_state automaton.transitions state head with
+    | None ->
+      let next = new_state automaton in
+      let updated = { automaton with transitions = { before = state; symbol = head; after = next; } :: automaton.transitions } in
+      add_combo updated next tail move
+    | Some s -> add_combo automaton s tail move
+
+let train combos =
+  (List.fold_left (fun acc combo -> add_combo acc 0 combo.sequence combo.name) empty combos )
+
+let find_moves finals state =
+  List.map (fun f -> f.move) (List.filter (fun x -> x.state = state) finals)
+
+let step automaton state symbol =
+  match next_state automaton.transitions state symbol with
+  | Some next -> next
+  | None ->
+    match next_state automaton.transitions 0 symbol with
+    | Some next -> next
+    | None -> 0
