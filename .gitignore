@@ -1,5 +1,24 @@
-_opam/
-_opam/
-*.cm*
+# OCaml compiled artifacts
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.cma
+*.cmxs
 *.o
+*.a
+
+# Executables
 ft_ality
+*.exe
+
+# Build directories
+_build/
+_build
+
+# Editor and temporary files
+*~
+*.swp
+*.swo
+
+_opam/
