@@ -1,5 +1,5 @@
 NAME = ft_ality
-SRC  = src/keymap.ml src/automaton.ml src/grammar.ml src/recognition.ml src/main.ml
+SRC  = src/keymap.ml src/automaton.ml src/grammar.ml src/recognition.ml src/input.ml src/main.ml
 
 all: $(NAME)
 
