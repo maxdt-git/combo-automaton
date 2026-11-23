@@ -57,7 +57,7 @@ let load_grammar path =
   | exception Sys_error msg -> prerr_endline msg; exit 1
 
 let () =
-Keymap.print_keymap Keymap.keymaps;
+(* Keymap.print_keymap Keymap.keymaps;
 List.iter (print_inputs Keymap.keymaps) inputs;
 print_endline "----------------------";
 List.iter (print_recognition uppercut) words;
@@ -74,4 +74,13 @@ let (keys, moves) = Grammar.split_sections lines in
 let bindings = List.map Grammar.parse_key keys in
 let combos = List.map Grammar.parse_move moves in
 print_endline (string_of_int (List.length bindings) ^ " keys");
-print_endline (string_of_int (List.length combos) ^ " moves")
+print_endline (string_of_int (List.length combos) ^ " moves") *)
+  let lines = load_grammar (get_grammar_path ()) in
+  match Grammar.parse_grammar lines with
+  | Error msg ->
+    prerr_endline ("Error: " ^ msg);
+    exit 1
+  | Ok (keymap, combos) ->
+    let automaton = Automaton.train combos in
+    Keymap.print_keymap keymap;
+    simulate automaton 0 inputs_symbols
