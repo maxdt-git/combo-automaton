@@ -56,8 +56,32 @@ let load_grammar path =
   | lines -> lines
   | exception Sys_error msg -> prerr_endline msg; exit 1
 
-let () =
-Keymap.print_keymap Keymap.keymaps;
+let (cur_state, lst_finals, mv) = Recognition.process_key trained Keymap.keymaps 0 "e"
+let action_found =
+    match mv with
+    | None -> "No Move"
+    | Some move -> move
+
+let () = 
+    print_endline (string_of_int cur_state);
+    print_endline action_found;
+    List.iter print_endline lst_finals
+    
+let (cur_state, lst_finals, mv) = Recognition.process_key trained Keymap.keymaps cur_state "t"
+let action_found =
+    match mv with
+    | None -> "No Move"
+    | Some move -> move
+    
+let () = 
+    print_endline (string_of_int cur_state);
+    print_endline action_found;
+    List.iter print_endline lst_finals
+        
+
+
+(* let () = *)
+(* Keymap.print_keymap Keymap.keymaps;
 List.iter (print_inputs Keymap.keymaps) inputs;
 print_endline "----------------------";
 List.iter (print_recognition uppercut) words;
@@ -68,4 +92,6 @@ simulate trained 0 inputs_symbols;
 print_endline "----------------------";
 print_endline "OPEN TEST ------";
 (* test_path (get_grammar_path ()) *)
-List.iter print_endline (load_grammar (get_grammar_path ()))
+List.iter print_endline (load_grammar (get_grammar_path ())) *)
+(* print_endline (string_of_int cur_state);
+List.iter print_endline lst_finals *)
