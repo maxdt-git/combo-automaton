@@ -30,5 +30,14 @@ let split_sections lines =
   in
   loop Nothing [] [] lines
 
-let split_lines lines =
-  List.map (String.split_on_char ':') lines
+let parse_key line =
+  match String.split_on_char ':' line with
+  | [ left; right ] -> Some { Keymap.key = String.trim left; action = String.trim right }
+  | _ -> None
+
+let parse_move line =
+  match String.split_on_char ':' line with
+  | [ keys; right ] ->
+    let symbols = String.split_on_char ',' keys in
+    Some { Automaton.sequence = List.map String.trim symbols; name = String.trim right }
+  | _ -> None

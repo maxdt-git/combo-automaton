@@ -68,4 +68,10 @@ simulate trained 0 inputs_symbols;
 print_endline "----------------------";
 print_endline "OPEN TEST ------";
 (* test_path (get_grammar_path ()) *)
-List.iter print_endline (load_grammar (get_grammar_path ()))
+List.iter print_endline (Grammar.clean_lines (load_grammar (get_grammar_path ())));
+let lines = Grammar.clean_lines (load_grammar (get_grammar_path ())) in
+let (keys, moves) = Grammar.split_sections lines in
+let bindings = List.map Grammar.parse_key keys in
+let combos = List.map Grammar.parse_move moves in
+print_endline (string_of_int (List.length bindings) ^ " keys");
+print_endline (string_of_int (List.length combos) ^ " moves")
