@@ -55,9 +55,12 @@ let load_grammar path =
   match Grammar.read_lines path with
   | lines -> lines
   | exception Sys_error msg -> prerr_endline msg; exit 1
-
+    
 let () =
-Keymap.print_keymap Keymap.keymaps;
+    Input.start trained Keymap.keymaps
+
+(* let () = *)
+(* Keymap.print_keymap Keymap.keymaps;
 List.iter (print_inputs Keymap.keymaps) inputs;
 print_endline "----------------------";
 List.iter (print_recognition uppercut) words;
@@ -68,4 +71,6 @@ simulate trained 0 inputs_symbols;
 print_endline "----------------------";
 print_endline "OPEN TEST ------";
 (* test_path (get_grammar_path ()) *)
-List.iter print_endline (load_grammar (get_grammar_path ()))
+List.iter print_endline (load_grammar (get_grammar_path ())) *)
+(* print_endline (string_of_int cur_state);
+List.iter print_endline lst_finals *)
