@@ -55,30 +55,9 @@ let load_grammar path =
   match Grammar.read_lines path with
   | lines -> lines
   | exception Sys_error msg -> prerr_endline msg; exit 1
-
-let (cur_state, lst_finals, mv) = Recognition.process_key trained Keymap.keymaps 0 "e"
-let action_found =
-    match mv with
-    | None -> "No Move"
-    | Some move -> move
-
-let () = 
-    print_endline (string_of_int cur_state);
-    print_endline action_found;
-    List.iter print_endline lst_finals
     
-let (cur_state, lst_finals, mv) = Recognition.process_key trained Keymap.keymaps cur_state "t"
-let action_found =
-    match mv with
-    | None -> "No Move"
-    | Some move -> move
-    
-let () = 
-    print_endline (string_of_int cur_state);
-    print_endline action_found;
-    List.iter print_endline lst_finals
-        
-
+let () =
+    Input.start trained Keymap.keymaps
 
 (* let () = *)
 (* Keymap.print_keymap Keymap.keymaps;
