@@ -1,64 +1,73 @@
-type state = int
-
 type transition = {
-  from_state : state;
+  before : int;
   symbol : string;
-  to_state : state;
+  after : int
 }
 
-type t = {
-  states : state list;
-  alphabet : string list;
-  initial : state;
-  finals : state list;
+type final = {
+  state : int;
+  move: string
+}
+
+type automaton = {
   transitions : transition list;
+  finals : final list
 }
 
-let fireball = {
-  states = [0; 1; 2; 3];
-  alphabet = ["Down"; "Right"; "Punch"];
-  initial = 0;
-  finals = [3];
-  transitions = [
-    { from_state = 0; symbol = "Down"; to_state = 1 };
-    { from_state = 1; symbol = "Right"; to_state = 2 };
-    { from_state = 2; symbol = "Punch"; to_state = 3 };
-  ];
+type combo = {
+  sequence : string list;
+  name : string
 }
 
-let next_state automaton current_state key =
-  (* List.find_opt returns an option so the result is Some transition *)
-  let result = List.find_opt (fun x -> x.from_state = current_state && x.symbol = key) automaton.transitions in
-  match result with
-  | None -> None
-  | Some transition -> Some transition.to_state
+let rec next_state transitions state symbol =
+  match transitions with
+  | [] -> None
+  | head :: _ when head.symbol = symbol && head.before = state -> Some head.after
+  | _ :: tail -> next_state tail state symbol
 
-let is_final automaton state =
-  List.mem state automaton.finals
+let rec run transitions state symbols =
+  match symbols with
+  | [] -> Some state
+  | head :: tail ->
+    (match next_state transitions state head with
+    | None -> None
+    | Some next -> run transitions next tail)
+
+let find_moves finals state =
+  List.map (fun f -> f.move) (List.filter (fun x -> x.state = state) finals)
+
+let recognize automaton symbols =
+  match run automaton.transitions 0 symbols with
+  | None -> []
+  | Some last -> find_moves automaton.finals last
+
+let empty = {
+  transitions = [];
+  finals = [];
+}
+
+let new_state automaton =
+  (List.fold_left (fun acc t -> max acc t.after) 0 automaton.transitions) + 1
+
+let rec add_combo automaton state symbols move =
+  match symbols with
+  | [] -> {automaton with finals = { state = state; move = move } :: automaton.finals }
+  | head :: tail ->
+    match next_state automaton.transitions state head with
+    | None ->
+      let next = new_state automaton in
+      let updated = { automaton with transitions = { before = state; symbol = head; after = next; } :: automaton.transitions } in
+      add_combo updated next tail move
+    | Some s -> add_combo automaton s tail move
+
+let train combos =
+  (List.fold_left (fun acc combo -> add_combo acc 0 combo.sequence combo.name) empty combos )
 
 
-(* We want to do something for each of the
-    moves in our list so we start by matching the moves,
-    if empty then final verification, else we try to go next_state
-    because next_state returns an option, we try to match the return
-    if None we call recursive with initial state and rest of the moves (tail) - combo failed, 
-    if Some state - we call recursive with state returned (so the next state) and tail*)
-let recognize automaton moves =
-  let rec aux current_state moves =
-    match moves with
-    | [] -> is_final automaton current_state
-    | head :: tail ->
-      match next_state automaton current_state head with
-      | None -> false
-      | Some state -> aux state tail
-  in
-  aux automaton.initial moves 
-
-let step automaton current_state key =
-  let result = next_state automaton current_state key in
-  match result with
-  | Some state -> state
-  | None -> 
-      match next_state automaton automaton.initial key with
-      | None -> automaton.initial
-      | Some state -> state
+let step automaton state symbol =
+  match next_state automaton.transitions state symbol with
+  | Some next -> next
+  | None ->
+    match next_state automaton.transitions 0 symbol with
+    | Some next -> next
+    | None -> 0
