@@ -1,49 +1,60 @@
-NAME = ft_ality
-SRC_DIR = src
-BUILD_DIR = build
+# ft_ality — all compilation and execution happen inside Podman.
+# The host needs only GNU Make and Podman, not OCaml.
 
-SRC = $(SRC_DIR)/keymap.ml \
-      $(SRC_DIR)/automaton.ml \
-      $(SRC_DIR)/grammar.ml \
-      $(SRC_DIR)/recognition.ml \
-      $(SRC_DIR)/input.ml \
-      $(SRC_DIR)/main.ml
+PODMAN           = podman
+PODMAN_IMAGE     = ft-ality-ocaml:5.3.0
+PODMAN_CONTAINER = ft-ality-dev
+GRAMMAR         ?=
 
-OBJ = $(patsubst $(SRC_DIR)/%.ml,$(BUILD_DIR)/%.cmx,$(SRC))
+.DEFAULT_GOAL := all
 
-OCAMLOPT = ocamlfind ocamlopt
-OCAMLFLAGS = -I $(BUILD_DIR)
+all: podman-compile
 
-all: $(NAME)
+podman-build:
+	$(PODMAN) build -f Containerfile -t $(PODMAN_IMAGE) .
 
-$(NAME): $(OBJ)
-	$(OCAMLOPT) $(OCAMLFLAGS) -o $@ $(OBJ)
+# Sources are mounted read-only, so build artifacts stay inside the container.
+# Do not use --userns=keep-id here: /workspace belongs to the container user.
+podman-up:
+	$(PODMAN) run -d --name $(PODMAN_CONTAINER) \
+		-v "$(CURDIR):/source:ro,Z" -w /workspace \
+		$(PODMAN_IMAGE)
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+# Refresh sources before every build; generated .cmi/.cmx/.o stay in /workspace/src.
+# Existing compiled interfaces copied from the host are removed before compiling.
+podman-compile:
+	$(PODMAN) exec -w /workspace $(PODMAN_CONTAINER) sh -ec '\
+		rm -rf src grammars grammar; \
+		cp -R /source/src ./src; \
+		if [ -d /source/grammars ]; then cp -R /source/grammars ./grammars; fi; \
+		if [ -d /source/grammar ]; then cp -R /source/grammar ./grammar; fi; \
+		rm -f src/*.cmi src/*.cmo src/*.cmx src/*.o src/*.cmt src/*.cmti; \
+		ocamlfind ocamlopt -I src -o ft_ality \
+			src/keymap.ml \
+			src/automaton.ml \
+			src/grammar.ml \
+			src/recognition.ml \
+			src/input.ml \
+			src/main.ml'
 
-$(BUILD_DIR)/%.cmx: $(SRC_DIR)/%.ml Makefile | $(BUILD_DIR)
-	$(OCAMLOPT) $(OCAMLFLAGS) -c -o $@ $<
+# Keep stdin attached: input_char stdin + stty require an interactive terminal.
+podman-run: podman-compile
+	$(PODMAN) exec -it -w /workspace $(PODMAN_CONTAINER) ./ft_ality $(GRAMMAR)
 
-# Compilation dependencies (needed for correct incremental and parallel builds)
-$(BUILD_DIR)/grammar.cmx: $(BUILD_DIR)/automaton.cmx $(BUILD_DIR)/keymap.cmx
-$(BUILD_DIR)/recognition.cmx: $(BUILD_DIR)/automaton.cmx $(BUILD_DIR)/keymap.cmx
-$(BUILD_DIR)/input.cmx: $(BUILD_DIR)/recognition.cmx
-$(BUILD_DIR)/main.cmx: $(BUILD_DIR)/keymap.cmx $(BUILD_DIR)/automaton.cmx \
-                        $(BUILD_DIR)/grammar.cmx $(BUILD_DIR)/recognition.cmx \
-                        $(BUILD_DIR)/input.cmx
+podman-shell:
+	$(PODMAN) exec -it -w /workspace $(PODMAN_CONTAINER) /bin/bash
 
 clean:
-	rm -rf $(BUILD_DIR)
-	# Remove artifacts left by the previous Makefile inside src/
-	rm -f $(SRC_DIR)/*.cmi $(SRC_DIR)/*.cmo $(SRC_DIR)/*.cmx \
-	      $(SRC_DIR)/*.o $(SRC_DIR)/*.cmt $(SRC_DIR)/*.cmti
+	$(PODMAN) exec -w /workspace $(PODMAN_CONTAINER) sh -c \
+		'rm -f src/*.cmi src/*.cmo src/*.cmx src/*.o src/*.cmt src/*.cmti'
 
 fclean: clean
-	rm -f $(NAME)
+	$(PODMAN) exec -w /workspace $(PODMAN_CONTAINER) rm -f /workspace/ft_ality
 
-re:
-	$(MAKE) fclean
-	$(MAKE) all
+re: fclean all
 
-.PHONY: all clean fclean re
+podman-down:
+	$(PODMAN) rm -f $(PODMAN_CONTAINER)
+
+.PHONY: all podman-build podman-up podman-compile podman-run \
+        podman-shell podman-down clean fclean re
