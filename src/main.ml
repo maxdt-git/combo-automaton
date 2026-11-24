@@ -55,8 +55,11 @@ let load_grammar path =
   match Grammar.read_lines path with
   | lines -> lines
   | exception Sys_error msg -> prerr_endline msg; exit 1
-
+    
 let () =
+    Input.start trained Keymap.keymaps
+
+(* let () = *)
 (* Keymap.print_keymap Keymap.keymaps;
 List.iter (print_inputs Keymap.keymaps) inputs;
 print_endline "----------------------";
@@ -84,3 +87,6 @@ print_endline (string_of_int (List.length combos) ^ " moves") *)
     let automaton = Automaton.train combos in
     Keymap.print_keymap keymap;
     simulate automaton 0 inputs_symbols
+List.iter print_endline (load_grammar (get_grammar_path ())) *)
+(* print_endline (string_of_int cur_state);
+List.iter print_endline lst_finals *)
