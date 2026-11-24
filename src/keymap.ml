@@ -1,14 +1,5 @@
 type binding = { key: string; action : string }
 
-let keymaps = [
-  { key = "q"; action = "Punch" };
-  { key = "w"; action = "Kick" };
-  { key = "e"; action = "Block" };
-  { key = "r"; action = "Down" };
-  { key = "t"; action = "Up" };
-  { key = "y"; action = "Duck" };
-]
-
 let print_binding b =
   print_endline (b.key ^ " -> " ^ b.action)
 

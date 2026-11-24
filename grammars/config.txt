@@ -1,0 +1,40 @@
+# ft_ality - Dojo des Nouilles Furieuses
+# Format : [keys] touche:symbole / [moves] symbole,symbole,...:nom du coup
+
+[keys]
+up:Up
+down:Down
+left:Back
+right:Forward
+q:Punch
+w:Kick
+e:Block
+r:Throw
+
+[moves]
+# Coups simples
+Punch:Jab
+Kick:Low Kick
+Block:Guard
+
+# Deux coups pour la même séquence
+Throw:Grab
+Throw:Noodle Lasso (Chef Ramen)
+
+# Préfixes partagés : Down,Forward,...
+Down,Forward,Punch:Hadoudon
+Down,Forward,Kick:Tsunami Sweep
+Down,Forward,Punch,Punch:Double Hadoudon
+
+# Un coup qui continue en combo plus long
+Punch,Punch:One-Two
+Punch,Punch,Kick:One-Two-Wasabi
+
+# Directions
+Back,Forward,Punch:Spring Roll Uppercut
+Down,Down,Kick:Earthquake Stomp
+Up,Up,Down,Down:Konami Crane
+
+# Combos longs
+Block,Back,Forward,Throw:Chopstick Reversal
+Down,Back,Down,Forward,Punch,Kick:Ultimate Broth Explosion

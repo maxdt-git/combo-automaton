@@ -25,21 +25,8 @@ let rec next_state transitions state symbol =
   | head :: _ when head.symbol = symbol && head.before = state -> Some head.after
   | _ :: tail -> next_state tail state symbol
 
-let rec run transitions state symbols =
-  match symbols with
-  | [] -> Some state
-  | head :: tail ->
-    (match next_state transitions state head with
-    | None -> None
-    | Some next -> run transitions next tail)
-
 let find_moves finals state =
   List.map (fun f -> f.move) (List.filter (fun x -> x.state = state) finals)
-
-let recognize automaton symbols =
-  match run automaton.transitions 0 symbols with
-  | None -> []
-  | Some last -> find_moves automaton.finals last
 
 let empty = {
   transitions = [];
@@ -51,7 +38,7 @@ let new_state automaton =
 
 let rec add_combo automaton state symbols move =
   match symbols with
-  | [] -> {automaton with finals = { state = state; move = move } :: automaton.finals }
+  | [] -> { automaton with finals = { state = state; move = move } :: automaton.finals }
   | head :: tail ->
     match next_state automaton.transitions state head with
     | None ->
@@ -62,7 +49,6 @@ let rec add_combo automaton state symbols move =
 
 let train combos =
   (List.fold_left (fun acc combo -> add_combo acc 0 combo.sequence combo.name) empty combos )
-
 
 let step automaton state symbol =
   match next_state automaton.transitions state symbol with

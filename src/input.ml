@@ -33,7 +33,7 @@ let rec loop automaton bindings current_state =
     | None -> loop automaton bindings next_state
     | Some action ->
       let () = print_endline action;
-      List.iter print_endline lst_finals in
+      List.iter (fun m -> print_endline (m ^ " !!")) lst_finals in
       loop automaton bindings next_state
 
 let start automaton bindings =
