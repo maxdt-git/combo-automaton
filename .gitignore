@@ -13,8 +13,7 @@ ft_ality
 *.exe
 
 # Build directories
-_build/
-_build
+build/
 
 # Editor and temporary files
 *~
