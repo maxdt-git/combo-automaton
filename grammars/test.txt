@@ -1,5 +1,12 @@
 Salut ca
 va les
 gars yeah
-et toi
+# et toi
 oui cool
+
+[keys]
+a:left
+s : down
+
+[moves]
+a, s: slide

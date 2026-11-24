@@ -71,6 +71,22 @@ simulate trained 0 inputs_symbols;
 print_endline "----------------------";
 print_endline "OPEN TEST ------";
 (* test_path (get_grammar_path ()) *)
+List.iter print_endline (Grammar.clean_lines (load_grammar (get_grammar_path ())));
+let lines = Grammar.clean_lines (load_grammar (get_grammar_path ())) in
+let (keys, moves) = Grammar.split_sections lines in
+let bindings = List.map Grammar.parse_key keys in
+let combos = List.map Grammar.parse_move moves in
+print_endline (string_of_int (List.length bindings) ^ " keys");
+print_endline (string_of_int (List.length combos) ^ " moves") *)
+  let lines = load_grammar (get_grammar_path ()) in
+  match Grammar.parse_grammar lines with
+  | Error msg ->
+    prerr_endline ("Error: " ^ msg);
+    exit 1
+  | Ok (keymap, combos) ->
+    let automaton = Automaton.train combos in
+    Keymap.print_keymap keymap;
+    simulate automaton 0 inputs_symbols
 List.iter print_endline (load_grammar (get_grammar_path ())) *)
 (* print_endline (string_of_int cur_state);
 List.iter print_endline lst_finals *)
